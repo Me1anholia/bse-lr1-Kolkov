@@ -41,6 +41,22 @@
             font-size: 14px;
         }
 
+        .menu-btn {
+            background: #667eea;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 14px;
+            margin-top: 10px;
+            transition: background 0.3s;
+        }
+
+        .menu-btn:hover {
+            background: #5a67d8;
+        }
+
         .task-list {
             background: white;
             padding: 20px;
@@ -166,6 +182,7 @@
         <div class="header">
             <h1>📋 Активні завдання</h1>
             <p id="taskCount">Всього завдань: 0</p>
+            <button class="menu-btn" onclick="window.location.href='completed-tasks.html'">Переглянути виконані</button>
         </div>
 
         <div class="task-list" id="taskList"></div>
@@ -178,14 +195,27 @@
     <script>
         const taskList = document.getElementById('taskList');
         const taskCount = document.getElementById('taskCount');
+        const completedTasksKey = 'completedTasks';
 
         const tasks = [
-            { id: 1, text: 'Завершити проект веб-додатку', date: '2024-01-15', priority: 'high', completed: false },
-            { id: 2, text: 'Переглянути код команди', date: '2024-01-16', priority: 'medium', completed: false },
-            { id: 3, text: 'Написати документацію', date: '2024-01-17', priority: 'medium', completed: false },
-            { id: 4, text: 'Провести тестування', date: '2024-01-18', priority: 'high', completed: false },
-            { id: 5, text: 'Оновити залежності проекту', date: '2024-01-19', priority: 'low', completed: false }
+            { id: 1, text: 'Завершити проект веб-додатку', date: '2026-04-14', priority: 'high', completed: false },
+            { id: 2, text: 'Перевірити код команди', date: '2026-04-15', priority: 'medium', completed: false },
+            { id: 3, text: 'Написати документацію', date: '2026-04-16', priority: 'medium', completed: false },
+            { id: 4, text: 'Провести тестування', date: '2026-04-17', priority: 'high', completed: false },
+            { id: 5, text: 'Оновити залежності проекту', date: '2026-04-18', priority: 'low', completed: false }
         ];
+
+        function getTodayDate() {
+            return new Date().toISOString().split('T')[0];
+        }
+
+        function loadCompletedTasks() {
+            return JSON.parse(localStorage.getItem(completedTasksKey) || '[]');
+        }
+
+        function saveCompletedTasks(items) {
+            localStorage.setItem(completedTasksKey, JSON.stringify(items));
+        }
 
         function renderTasks() {
             if (tasks.length === 0) {
@@ -194,6 +224,7 @@
                         <p>✓ Усі завдання завершені! Хорошої роботи!</p>
                     </div>
                 `;
+                updateTaskCount();
                 return;
             }
 
@@ -220,13 +251,34 @@
 
         function toggleTask(id) {
             const task = tasks.find(t => t.id === id);
-            if (task) task.completed = !task.completed;
+            if (!task) return;
+
+            task.completed = !task.completed;
+            const completedTasks = loadCompletedTasks();
+
+            if (task.completed) {
+                completedTasks.push({
+                    id: task.id,
+                    text: task.text,
+                    date: getTodayDate(),
+                    priority: task.priority
+                });
+            } else {
+                const index = completedTasks.findIndex(t => t.id === task.id);
+                if (index !== -1) completedTasks.splice(index, 1);
+            }
+
+            saveCompletedTasks(completedTasks);
             renderTasks();
         }
 
         function deleteTask(id) {
             const index = tasks.findIndex(t => t.id === id);
             if (index > -1) tasks.splice(index, 1);
+
+            const completedTasks = loadCompletedTasks().filter(t => t.id !== id);
+            saveCompletedTasks(completedTasks);
+
             renderTasks();
         }
 

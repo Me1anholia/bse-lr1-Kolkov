@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Виконані завдання за тиждень</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        .header {
+            background: white;
+            padding: 25px;
+            border-radius: 12px 12px 0 0;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        .header h1 {
+            color: #333;
+            font-size: 24px;
+            margin-bottom: 5px;
+        }
+
+        .header p {
+            color: #666;
+            font-size: 14px;
+        }
+
+        .menu-btn {
+            background: #667eea;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 14px;
+            margin-top: 10px;
+            transition: background 0.3s;
+        }
+
+        .menu-btn:hover {
+            background: #5a67d8;
+        }
+
+        .task-list {
+            background: white;
+            padding: 20px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        .task-item {
+            display: flex;
+            align-items: flex-start;
+            padding: 15px;
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+            margin-bottom: 12px;
+            transition: all 0.3s ease;
+            background: #f9f9f9;
+        }
+
+        .task-item:hover {
+            background: #f0f0f0;
+            border-color: #667eea;
+        }
+
+        .task-content {
+            flex: 1;
+        }
+
+        .task-text {
+            color: #999;
+            font-size: 15px;
+            margin-bottom: 5px;
+            line-height: 1.5;
+            text-decoration: line-through;
+        }
+
+        .task-meta {
+            display: flex;
+            gap: 15px;
+            font-size: 13px;
+            color: #999;
+        }
+
+        .priority {
+            display: inline-block;
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-weight: 500;
+            font-size: 12px;
+        }
+
+        .priority.high {
+            background: #fee;
+            color: #c33;
+        }
+
+        .priority.medium {
+            background: #fef3cd;
+            color: #856404;
+        }
+
+        .priority.low {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 40px 20px;
+            color: #999;
+        }
+
+        .footer {
+            background: white;
+            padding: 20px 25px;
+            border-radius: 0 0 12px 12px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            text-align: center;
+            color: #666;
+            font-size: 13px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>✅ Виконані завдання за тиждень</h1>
+            <p id="weekRange">Тиждень: завантаження...</p>
+            <button class="menu-btn" onclick="window.location.href='index.html'">Повернутися до активних</button>
+        </div>
+
+        <div class="task-list" id="taskList"></div>
+
+        <div class="footer">
+            Показано завдання, завершені цього тижня.
+        </div>
+    </div>
+
+    <script>
+        const taskList = document.getElementById('taskList');
+        const weekRange = document.getElementById('weekRange');
+        const completedTasksKey = 'completedTasks';
+
+        function getCurrentWeekRange() {
+            const now = new Date();
+            const day = now.getDay() || 7;
+            const monday = new Date(now);
+            monday.setDate(now.getDate() - day + 1);
+            const sunday = new Date(monday);
+            sunday.setDate(monday.getDate() + 6);
+
+            const formatDate = date => date.toLocaleDateString('uk-UA', { day: '2-digit', month: '2-digit', year: 'numeric' });
+            return `${formatDate(monday)} - ${formatDate(sunday)}`;
+        }
+
+        function isDateInCurrentWeek(dateStr) {
+            const taskDate = new Date(dateStr);
+            const now = new Date();
+            const day = now.getDay() || 7;
+            const monday = new Date(now);
+            monday.setDate(now.getDate() - day + 1);
+            monday.setHours(0, 0, 0, 0);
+            const sunday = new Date(monday);
+            sunday.setDate(monday.getDate() + 6);
+            sunday.setHours(23, 59, 59, 999);
+            return taskDate >= monday && taskDate <= sunday;
+        }
+
+        function loadCompletedTasks() {
+            return JSON.parse(localStorage.getItem(completedTasksKey) || '[]');
+        }
+
+        function renderTasks() {
+            const currentWeekTasks = loadCompletedTasks().filter(task => isDateInCurrentWeek(task.date));
+            weekRange.textContent = `Тиждень: ${getCurrentWeekRange()}`;
+
+            if (currentWeekTasks.length === 0) {
+                taskList.innerHTML = `
+                    <div class="empty-state">
+                        <p>Немає виконаних завдань за цей тиждень</p>
+                    </div>
+                `;
+                return;
+            }
+
+            taskList.innerHTML = currentWeekTasks.map(task => `
+                <div class="task-item">
+                    <div class="task-content">
+                        <div class="task-text">${task.text}</div>
+                        <div class="task-meta">
+                            <span>📅 ${new Date(task.date).toLocaleDateString('uk-UA')}</span>
+                            <span class="priority ${task.priority}">
+                                ${task.priority === 'high' ? '🔴 Висока' : 
+                                  task.priority === 'medium' ? '🟡 Середня' : '🟢 Низька'}
+                            </span>
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        renderTasks();
+    </script>
+</body>
+</html>
