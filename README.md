@@ -31,7 +31,7 @@
 
 git clone https://github.com/Me1anholia/bse-lr1-Kolkov.git
 
-cd index.html
+cd bse-lr1-Kolkov
 
 start index.html
 
