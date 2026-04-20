@@ -42,3 +42,5 @@ start index.html
 
 
 MIT License
+## Звіт
+[Звіт з лабораторної роботи](bse-lr1-Kolkov/Колков_ЛБ№1.pdf)
